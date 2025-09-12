@@ -1,14 +1,13 @@
-from transformers import MBart50TokenizerFast
+from transformers import MBart50Tokenizer
 from datasets import load_dataset
 
-# Load pre-trained MarianMT model and tokenizer
-model_name = "facebook/mbart-large-50-many-to-many-mmt"
-tokenizer = MBart50TokenizerFast.from_pretrained(model_name)
+tokenizer = MBart50Tokenizer.from_pretrained("facebook/mbart-large-50-many-to-many-mmt")
+print(tokenizer.lang_code_to_id.keys())
 
 # Load your data (for both directions)
 dataset = load_dataset(
     "csv",
-    data_files="./dataset/basic_forms.tsv",
+    data_files="./data/basic_forms.tsv",
     delimiter="\t"  # Important for TSV
 )
 
@@ -26,4 +25,4 @@ def tokenize_function(examples):
 
 # Tokenize the dataset
 tokenized_datasets = dataset.map(tokenize_function, batched=True)
-print(tokenized_datasets)
+print(type(tokenized_datasets))
