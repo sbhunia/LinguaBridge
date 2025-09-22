@@ -1,0 +1,5 @@
+This directory contains examples for finetuning and evaluating transformers on translation tasks
+
+https://github.com/huggingface/transformers/tree/main/examples/pytorch/translation
+
+https://github.com/huggingface/transformers/blob/main/src/transformers/training_args.py
