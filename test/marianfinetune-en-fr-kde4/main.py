@@ -80,8 +80,9 @@ def compute_metrics(eval_preds):
 # documentation
 # https://huggingface.co/docs/transformers/v4.56.2/en/main_classes/trainer#transformers.TrainingArguments
 args = Seq2SeqTrainingArguments(
-    f"marian-finetuned-opusbooks-en-to-fr",
-    do_eval=False,
+    f"marian-finetuned-opusbooks-en-to-fr-graph",
+    do_eval=True,
+    eval_strategy="epoch",
     save_strategy="epoch",
     learning_rate=2e-5,
     per_device_train_batch_size=32,
@@ -91,7 +92,11 @@ args = Seq2SeqTrainingArguments(
     num_train_epochs=3,
     predict_with_generate=True,
     fp16=torch.cuda.is_available(),
-    push_to_hub=True
+    push_to_hub=True,
+    logging_dir="./logs",
+    logging_strategy="steps",
+    logging_steps=5,
+    report_to="tensorboard"
 )
 
 trainer = Seq2SeqTrainer(
