@@ -1,0 +1,13 @@
+command to watch nvidia GPU usage 
+-  watch -n 1 nvidia-smi
+conda env created myaamiatranslate
+- python 3.13.7
+
+- pip install datasets
+- pip install transformers
+- pip install torch
+- pip install evaluate
+- pip install sentencepiece
+- pip install sacrebleu
+- pip install transformers[torch]
+- pip install tensorboard
