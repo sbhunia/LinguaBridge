@@ -35,10 +35,10 @@ def load_tsv(path):
 
 
 datasets = [
-    load_tsv("../../data/basic_forms.tsv"),
-    load_tsv("../../data/command_forms.tsv"),
-    load_tsv("../../data/sentences.tsv"),
-    load_tsv("../../data/story_book.tsv"),
+    load_tsv("../../../data/basic_forms.tsv"),
+    load_tsv("../../../data/command_forms.tsv"),
+    load_tsv("../../../data/sentences.tsv"),
+    load_tsv("../../../data/story_book.tsv"),
 ]
 
 full_dataset = concatenate_datasets(datasets)
@@ -95,18 +95,19 @@ training_args = Seq2SeqTrainingArguments(
     output_dir=save_dir,
     eval_strategy="epoch",               
     save_strategy="epoch",
-    learning_rate=5e-5,
+    learning_rate=2e-5,
+    warmup_ratio=0.06,           
     per_device_train_batch_size=16,
     per_device_eval_batch_size=16,
     weight_decay=0.01,
-    save_total_limit=1,
-    num_train_epochs=3,
+    save_total_limit=3,
+    num_train_epochs=10,
     predict_with_generate=True,
     logging_dir="./logs",
     logging_strategy="steps",
     logging_steps=5,
     fp16=True,
-    report_to=["none"],  # disables wandb
+    report_to="tensorboard"
 )
 
 data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
