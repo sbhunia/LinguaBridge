@@ -3,11 +3,22 @@ command to watch nvidia GPU usage
 conda env created myaamiatranslate
 - python 3.13.7
 
-- pip install datasets
-- pip install transformers
-- pip install torch
-- pip install evaluate
-- pip install sentencepiece
-- pip install sacrebleu
-- pip install transformers[torch]
-- pip install tensorboard
+Steps1: Conda
+    - install miniconda
+    - create conda env
+    - actvate conda env
+
+Step2: installing dependencies
+    - pip install datasets
+    - pip install transformers
+    - pip install torch
+    - pip install evaluate
+    - pip install sentencepiece
+    - pip install sacrebleu
+    - pip install transformers[torch]
+    - pip install tensorboard
+    - pip install nltk
+
+
+Run Tensoboard:
+    - tensorboard --logdir ./logs
