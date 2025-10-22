@@ -1,6 +1,7 @@
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
 
-model_checkpoint = "/home/yogesh/LinguaBridge/test/marianfinetune-en-fr-kde4/marian-finetuned-opusbooks-en-to-fr/checkpoint-8340"
+model_checkpoint = "/home/yogesh/LinguaBridge/test/marianfinetune-en-fr-kde4/myaamia/40-epocs-multi-eval/marian_finetuned_myaamia/checkpoint-33440"
+
 print(model_checkpoint)
 tokenizer = AutoTokenizer.from_pretrained(model_checkpoint, local_files_only=True)
 model = AutoModelForSeq2SeqLM.from_pretrained(model_checkpoint, local_files_only=True)
@@ -9,5 +10,5 @@ model = AutoModelForSeq2SeqLM.from_pretrained(model_checkpoint, local_files_only
 translator = pipeline("translation", model=model, tokenizer=tokenizer)
 
 # Test translation
-result = translator("Hello, how are you?")
+result = translator("kiišikwi iihkipakinki")
 print(result[0]['translation_text'])
