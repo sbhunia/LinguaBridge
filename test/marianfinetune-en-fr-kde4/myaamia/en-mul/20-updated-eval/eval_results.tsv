@@ -1,0 +1,16 @@
+{'bleu': 1.7014, 'meteor': 0.0023, 'bert_score': 0.3215}
+{'bleu': 3.8888, 'meteor': 0.0362, 'bert_score': 0.4601}
+{'bleu': 5.5919, 'meteor': 0.1069, 'bert_score': 0.5843}
+{'bleu': 8.3574, 'meteor': 0.1792, 'bert_score': 0.6733}
+{'bleu': 9.3161, 'meteor': 0.2201, 'bert_score': 0.7165}
+{'bleu': 10.0682, 'meteor': 0.2502, 'bert_score': 0.7474}
+{'bleu': 12.2061, 'meteor': 0.2705, 'bert_score': 0.7679}
+{'bleu': 12.662, 'meteor': 0.287, 'bert_score': 0.781}
+{'bleu': 12.395, 'meteor': 0.2962, 'bert_score': 0.7903}
+{'bleu': 13.3733, 'meteor': 0.3073, 'bert_score': 0.801}
+{'bleu': 13.6408, 'meteor': 0.312, 'bert_score': 0.8052}
+{'bleu': 14.2213, 'meteor': 0.3187, 'bert_score': 0.8117}
+{'bleu': 14.4264, 'meteor': 0.3213, 'bert_score': 0.8173}
+{'bleu': 14.7236, 'meteor': 0.323, 'bert_score': 0.8189}
+{'bleu': 14.7597, 'meteor': 0.3251, 'bert_score': 0.8201}
+{'bleu': 14.5874, 'meteor': 0.3293, 'bert_score': 0.8241}
