@@ -17,8 +17,22 @@ Step2: installing dependencies
     - pip install sacrebleu
     - pip install transformers[torch]
     - pip install tensorboard
-    - pip install nltk
+     - pip install nltk
 
-
+Notes :
+    - config.json: This file contains the model's architecture and configuration settings. It defines key parameters like the number of layers, 
+    hidden size, and other hyperparameters that determine how the model is built.
+    - generation_config.json: This file stores settings specifically for text generation, such as the max_length, num_beams, 
+    and early_stopping parameters used during translation.
+    - model.safetensors: This is the most crucial file, containing the fine-tuned model's weights and parameters. 
+    The .safetensors format is a secure and fast alternative to the older .bin or .pt formats, designed to prevent arbitrary code execution when a model is loaded.
+    - source.spm and target.spm: These are SentencePiece model files used by the tokenizer. 
+    They contain the vocabulary and rules for tokenizing the source and target languages, which is a necessary preprocessing step for the model to understand the text.
+    - special_tokens_map.json and tokenizer_config.json: These files contain additional configuration for the tokenizer, 
+    such as defining special tokens (like [PAD], [CLS], [SEP]) and other tokenizer-specific settings.
+    - training_args.bin, optimizer.pt, scheduler.pt, scaler.pt, rng_state.pth: These files are typically saved during training and 
+    contain the state of the training process, such as the optimizer's state, learning rate scheduler, and random number generator state. 
+    They are essential for resuming training from a checkpoint but are not needed for inference (using the model to make predictions). 
+   
 Run Tensoboard:
     - tensorboard --logdir ./logs
