@@ -11,7 +11,7 @@ from peft import PeftModel
 # ⬇️ *** SET THIS TO YOUR CHECKPOINT PATH *** ⬇️
 # This is the path to the checkpoint you want to test
 # (e.g., "llama-3.2-1b-en-mia-translation/checkpoint-100")
-ADAPTER_PATH = "/home/chaudhy/LinguaBridge/test/llama-3/myaamia/llama-3.2-1b-en-mia-translation/checkpoint-538"
+ADAPTER_PATH = "/home/chaudhy/LinguaBridge/test/llama-3/myaamia/test2/llama-3.2-1b-en-mia-translation/checkpoint-538"
 
 # This is the base model you used for training
 MODEL_ID = "meta-llama/Llama-3.2-1B-Instruct"
@@ -45,7 +45,7 @@ model = model.eval()
 
 # --- 5. Prepare the Prompt ---
 # This prompt must match the format you used in training
-system_prompt = ""
+system_prompt = "You are an expert translator. Translate the given English text into Myaamia"
 
 # ⬇️ *** TEST WITH YOUR OWN SENTENCE HERE *** ⬇️
 english_text = "Yes, it is sunny"
@@ -53,7 +53,7 @@ english_text = "Yes, it is sunny"
 # Create the list of messages
 messages = [
     {"role": "system", "content": system_prompt},
-    {"role": "user", "content": f"{english_text}"},
+    {"role": "user", "content": f"translate english to myaamia: {english_text}"},
 ]
 
 # Apply the chat template for inference
