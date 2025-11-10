@@ -3,15 +3,21 @@ command to watch nvidia GPU usage
 conda env created myaamiatranslate
 - python 3.13.7
 
-- pip install datasets
-- pip install transformers
-- pip install torch
-- pip install evaluate
-- pip install sentencepiece
-- pip install sacrebleu
-- pip install transformers[torch]
-- pip install tensorboard
+Steps1: Conda
+    - install miniconda
+    - create conda env
+    - actvate conda env
 
+Step2: installing dependencies
+    - pip install datasets
+    - pip install transformers
+    - pip install torch
+    - pip install evaluate
+    - pip install sentencepiece
+    - pip install sacrebleu
+    - pip install transformers[torch]
+    - pip install tensorboard
+     - pip install nltk
 
 Notes :
     - config.json: This file contains the model's architecture and configuration settings. It defines key parameters like the number of layers, 
@@ -27,3 +33,6 @@ Notes :
     - training_args.bin, optimizer.pt, scheduler.pt, scaler.pt, rng_state.pth: These files are typically saved during training and 
     contain the state of the training process, such as the optimizer's state, learning rate scheduler, and random number generator state. 
     They are essential for resuming training from a checkpoint but are not needed for inference (using the model to make predictions). 
+   
+Run Tensoboard:
+    - tensorboard --logdir ./logs
