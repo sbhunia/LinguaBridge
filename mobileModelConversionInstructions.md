@@ -1,4 +1,4 @@
-Model conversion
+## Model conversion
 https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference/ios
 
 Models	Conversion method	Compatible platforms	File type
@@ -22,12 +22,14 @@ The Torch Generative converter only converts for CPU and requires a Linux machin
 Github Code Example for PyTorch Converter
 - https://github.com/google-ai-edge/ai-edge-torch?tab=readme-ov-file#pytorch-converter
 
-Example code :
+#### Example code :
+
+```
 import torch
 import torchvision
 import ai_edge_torch
 
-# Use resnet18 with pre-trained weights.
+### Use resnet18 with pre-trained weights.
 resnet18 = torchvision.models.resnet18(torchvision.models.ResNet18_Weights.IMAGENET1K_V1)
 sample_inputs = (torch.randn(1, 3, 224, 224),)
 
@@ -35,9 +37,10 @@ sample_inputs = (torch.randn(1, 3, 224, 224),)
 # are setting the model to evaluation mode prior to conversion.
 edge_model = ai_edge_torch.convert(resnet18.eval(), sample_inputs)
 edge_model.export("resnet18.tflite")
+```
 
 Adapted Code :
-
+```
 import torch
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from ai_edge_torch.generative import convert
@@ -92,7 +95,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-
+```
 
 Convert PyTorch LLM to a LiteRT model:
 & Quantization related links and code:
@@ -133,20 +136,26 @@ Provides link to conver using optimum-cli https://github.com/huggingface/optimum
 STEP1:
 Has the code for conda env setup for conversion : Optimum ExecuTorch : https://github.com/huggingface/optimum-executorch?tab=readme-ov-file#option-2-export-and-load-separately
 optimun CLI https://huggingface.co/docs/transformers/en/serialization
-<<------    pip install optimum[exporters]  ------>>
-Seq2Seq
-Seq2Seq models can be exported using the text2text-generation task like so:
-<<---------
+
+```
+    pip install optimum[exporters] 
+```
+## Seq2Seq
+
+#### Seq2Seq models can be exported using the text2text-generation task like so:
+
+```
 optimum-cli export executorch \
   --model google-t5/t5-small \
   --task text2text-generation \
   --recipe xnnpack
-
+```
   or 
-
+```
   optimum-cli export executorch --model /home/yogesh/LinguaBridge/test/t5-small-60m/marian-finetuned-opusbooks-en-to-fr-graph/checkpoint-8340 --task text2text-generation --recipe xnnpack
-
-LLAMA
+```
+## LLAMA
+```
 optimum-cli export executorch \
     --model "/home/yogesh/LinguaBridge/test/llama-3/myaamia/llama-3.2-1b-en-mia-translation-merged" \
     --task "text-generation" \
@@ -156,11 +165,12 @@ optimum-cli export executorch \
     --qlinear 8da4w \
     --qembedding 8w \
     --output_dir="llama2_export"
+```
 
------------->>
 The export will produce a .pte with the following methods:
 
-text_decoder: the decoder half of the Seq2Seq model
+text_decoder: 
+the decoder half of the Seq2Seq model
 encoder: the encoder half of the Seq2Seq model. This encoder can support a variety of modalities, such as text for T5 and audio for Whisper.
 
 
@@ -175,7 +185,7 @@ Executorch GitHub : https://github.com/pytorch/executorch/tree/main?tab=readme-o
 
 
 Working with LLAMA
-
+```
 optimum-cli export executorch \
     --model "/home/yogesh/LinguaBridge/test/llama-3/myaamia/llama-3.2-1b-en-mia-translation-merged" \
     --task "text-generation" \
@@ -187,6 +197,7 @@ optimum-cli export executorch \
     --qlinear 8da4w \
     --qembedding 8w \
     --output_dir="llama2_export"
+```
 ERROR:
 Android Bundling failed 2133ms node_modules/expo-router/entry.js (1259 modules)
  ERROR  assets/models/llama/model.pte: Cannot create a string longer than 0x1fffffe8 characters
@@ -210,31 +221,30 @@ https://github.com/ggml-org/llama.cpp
 https://github.com/mybigday/llama.rn
 
 1. clone the llama.cpp git repo
-2. build it https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md
-3. python convert_hf_to_gguf.py /home/yogesh/LinguaBridge/test/llama-3/myaamia/llama-3.2-1b-en-mia-translation-merged   --outtype f16   --outfile llama3_1b_finetune_f16.gguf
-4. quantize to smaller
-./build/bin/llama-quantize llama3_1b_finetune_f16.gguf llama3_1b_finetune_Q4_K_M.gguf Q4_K_M
+2. `build it https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md`
+3. `python convert_hf_to_gguf.py /home/yogesh/LinguaBridge/test/llama-3/myaamia/llama-3.2-1b-en-mia-translation-merged   --outtype f16   --outfile llama3_1b_finetune_f16.gguf`
+4. quantize to smaller `./build/bin/llama-quantize llama3_1b_finetune_f16.gguf llama3_1b_finetune_Q4_K_M.gguf Q4_K_M`
+
 OUTPUT:
-llama_model_quantize_impl: model size  =  2357.26 MiB
-llama_model_quantize_impl: quant size  =   762.81 MiB
+    ```
+    llama_model_quantize_impl: model size  =  2357.26 MiB
+    llama_model_quantize_impl: quant size  =   762.81 MiB
 
-main: quantize time =  7076.61 ms
-main:    total time =  7076.61 ms
-
+    main: quantize time =  7076.61 ms
+    main:    total time =  7076.61 ms
+    ```
 
 Steps
-1. adb push /Users/mc-ga/Desktop/Research/translation/mobile/test6GGUF/llama-gguf/assets/model/llama3_1b_finetune_Q4_K_M.gguf /data/local/tmp/llama3_1b_finetune_Q4_K_M.gguf
-2. adb shell "run-as com.anonymous.llamagguf cp /data/local/tmp/llama3_1b_finetune_Q4_K_M.gguf /data/data/com.anonymous.llamagguf/files/llama3_1b_finetune_Q4_K_M.gguf"
+1. `adb push /Users/mc-ga/Desktop/Research/translation/mobile/test6GGUF/llama-gguf/assets/model/llama3_1b_finetune_Q4_K_M.gguf /data/local/tmp/llama3_1b_finetune_Q4_K_M.gguf`
+2. `adb shell "run-as com.anonymous.llamagguf cp /data/local/tmp/llama3_1b_finetune_Q4_K_M.gguf /data/data/com.anonymous.llamagguf/files/llama3_1b_finetune_Q4_K_M.gguf"`
 
 
 Export to APK:
 
-1.     cd android
-2.     ./gradlew assembleRelease
-3. After the build completes, the APK file will be located at: 
-
-    android/app/build/outputs/apk/release/app-release.apk
-4.         adb install android/app/build/outputs/apk/release/app-release.apk
+1. `cd android`
+2. `./gradlew assembleRelease`
+3. After the build completes, the APK file will be located at: `android/app/build/outputs/apk/release/app-release.apk`
+4. `adb install android/app/build/outputs/apk/release/app-release.apk`
 
 
 
