@@ -18,13 +18,13 @@ logging.basicConfig(level=logging.INFO)
 # --- 1. Configuration ---
 # ⬇️ *** TODO: SET THIS TO YOUR CHECKPOINT PATH *** ⬇️
 # Example: "llama-3.2-1b-en-mia-translation/checkpoint-200"
-ADAPTER_PATH = "llama-3.2-1b-en-mia-translation/checkpoint-100"
+ADAPTER_PATH = "/home/chaudhy/LinguaBridge/test/llama-3/myaamia/test2/llama-3.2-1b-en-mia-translation"
 
 # This is the base model your adapter was trained on
 MODEL_ID = "meta-llama/Llama-3.2-1B"
 
 # Set which GPU to use for evaluation
-EVAL_GPU = "5"
+EVAL_GPU = "3"
 
 # Set a batch size for evaluation. Adjust this based on your VRAM.
 # 4, 8, or 16 are good values to try.
@@ -159,12 +159,28 @@ for i in tqdm(range(0, len(test_data), EVAL_BATCH_SIZE), desc="Evaluating Batche
     all_predictions.extend(cleaned_preds)
     all_references.extend(cleaned_refs)
 
+
+print(f"  Checkpoint: {ADAPTER_PATH}")
+print(f"  Test Examples: {len(all_predictions)}")
 # --- 8. Compute and Print Final BLEU Score ---
 logging.info("Calculating final BLEU score...")
 result = bleu.compute(predictions=all_predictions, references=all_references)
 
-print("\n--- Evaluation Complete ---")
-print(f"  Checkpoint: {ADAPTER_PATH}")
-print(f"  Test Examples: {len(all_predictions)}")
+sacrebleu = evaluate.load("sacrebleu")
+sacrebleu_results = sacrebleu.compute(predictions=all_predictions, references=all_references)
+print(f"SacreBLEU Score: {sacrebleu_results['score']:.4f}")
+
+# Load chrF metric
+# ChrF++ is chrF with word_order=2 (defaults to chrF if word_order=0)
+chrf = evaluate.load("chrf") 
+chrf_results = chrf.compute(
+    predictions=all_predictions, 
+    references=all_references, 
+    word_order=2, # This activates ChrF++
+    beta=2.0 # Standard beta for ChrF++
+)
+print(f"ChrF++ Score: {chrf_results['score']:.4f}")
+
+
 print(f"  BLEU Score: {result['bleu'] * 100:.2f}")
 print("---------------------------")

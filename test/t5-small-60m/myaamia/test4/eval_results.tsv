@@ -22,3 +22,8 @@ Epoch result: {'bleu': 2.7589, 'meteor': 0.05, 'bert_score': 0.0, 'chrf++': 26.7
 Epoch result: {'bleu': 3.331, 'meteor': 0.0586, 'bert_score': 0.0, 'chrf++': 28.0149}
 Epoch result: {'bleu': 3.0409, 'meteor': 0.0648, 'bert_score': 0.0, 'chrf++': 29.0381}
 Epoch result: {'bleu': 2.6616, 'meteor': 0.0731, 'bert_score': 0.0, 'chrf++': 30.0827}
+Epoch result: {'bleu': 3.5996, 'meteor': 0.0807, 'bert_score': 0.0, 'chrf++': 31.2809}
+Epoch result: {'bleu': 2.8011, 'meteor': 0.0864, 'bert_score': 0.0, 'chrf++': 31.9553}
+Epoch result: {'bleu': 3.2496, 'meteor': 0.0916, 'bert_score': 0.0, 'chrf++': 32.6063}
+Epoch result: {'bleu': 3.2443, 'meteor': 0.0985, 'bert_score': 0.0, 'chrf++': 33.4004}
+Epoch result: {'bleu': 2.3358, 'meteor': 0.1027, 'bert_score': 0.0, 'chrf++': 34.0935}
