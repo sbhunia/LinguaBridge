@@ -1,0 +1,9 @@
+optimum-cli export executorch \
+    --model "/home/chaudhy/LinguaBridge/test/llama-3/mergedModel/myaamia_test2/llama-3.2-1b-en-mia-translation-merged" \
+    --task "text-generation" \
+    --recipe "xnnpack" \
+    --use_custom_sdpa \
+    --use_custom_kv_cache \
+    --qlinear 8da4w \
+    --qembedding 8w \
+    --output_dir="/home/chaudhy/LinguaBridge/test/llama-3/mergedModel/myaamia_test2/executorch"
