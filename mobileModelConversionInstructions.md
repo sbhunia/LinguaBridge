@@ -1,0 +1,250 @@
+## Model conversion
+https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference/ios
+
+Models	Conversion method	Compatible platforms	File type
+All PyTorch LLM models	AI Edge Torch Generative library	Android, iOS	.task
+
+
+PyTorch Model conversion
+
+https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference/index#convert-model
+
+
+Converting a PyTorch model with the AI Edge Torch Generative API involves the following steps:
+
+1. Download the PyTorch model checkpoints.
+2. Use the AI Edge Torch Generative API to author, convert, and quantize the model to a MediaPipe-compatible file format (.tflite).
+3. Create a Task Bundle (.task/.litertlm) from the tflite file and the model tokenizer.
+
+The Torch Generative converter only converts for CPU and requires a Linux machine with at least 64 GBs of RAM.
+
+
+Github Code Example for PyTorch Converter
+- https://github.com/google-ai-edge/ai-edge-torch?tab=readme-ov-file#pytorch-converter
+
+#### Example code :
+
+```
+import torch
+import torchvision
+import ai_edge_torch
+
+### Use resnet18 with pre-trained weights.
+resnet18 = torchvision.models.resnet18(torchvision.models.ResNet18_Weights.IMAGENET1K_V1)
+sample_inputs = (torch.randn(1, 3, 224, 224),)
+
+# Convert and serialize PyTorch model to a tflite flatbuffer. Note that we
+# are setting the model to evaluation mode prior to conversion.
+edge_model = ai_edge_torch.convert(resnet18.eval(), sample_inputs)
+edge_model.export("resnet18.tflite")
+```
+
+Adapted Code :
+```
+import torch
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from ai_edge_torch.generative import convert
+
+# Define the path to your finetuned checkpoint folder
+checkpoint_folder = "./your_marian_finetuned_model"
+tflite_path = "finetuned_marian.tflite"
+
+def main():
+    # 1. Load the tokenizer and model from your checkpoint
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(checkpoint_folder)
+        model = AutoModelForSeq2SeqLM.from_pretrained(checkpoint_folder)
+        model.eval()
+        print("Finetuned Marian model loaded successfully!")
+    except Exception as e:
+        print(f"Error loading model from {checkpoint_folder}: {e}")
+        return
+
+    # 2. Create sample inputs for tracing
+    # Use a realistic sentence for the sample input
+    input_text = "This is a test sentence for conversion."
+    encoded_input = tokenizer(input_text, return_tensors="pt")
+    encoder_input_ids = encoded_input['input_ids']
+
+    # Sample input for the decoder (initial token)
+    decoder_input_ids = torch.tensor([[model.config.decoder_start_token_id]])
+
+    sample_inputs = (
+        encoder_input_ids,
+        decoder_input_ids,
+    )
+    print(f"Sample encoder input shape: {encoder_input_ids.shape}")
+    print(f"Sample decoder input shape: {decoder_input_ids.shape}")
+
+    # 3. Convert the PyTorch model to LiteRT using the generative API
+    print("Starting conversion to LiteRT...")
+    try:
+        edge_model = convert(model, sample_inputs)
+        print("Conversion to LiteRT successful!")
+    except Exception as e:
+        print(f"Error during conversion: {e}")
+        return
+
+    # 4. Export the LiteRT model to a TFLite flatbuffer file
+    try:
+        edge_model.export(tflite_path)
+        print(f"Model exported to {tflite_path}!")
+    except Exception as e:
+        print(f"Error exporting model: {e}")
+        return
+
+if __name__ == "__main__":
+    main()
+```
+
+Convert PyTorch LLM to a LiteRT model:
+& Quantization related links and code:
+
+https://github.com/google-ai-edge/ai-edge-torch/tree/main/ai_edge_torch/generative
+
+
+
+Additional Links:
+    LiteRT for Android: https://ai.google.dev/edge/litert/android/index
+    LiteRT overview: https://ai.google.dev/edge/litert#integrate-model
+    Pre--trained models for LiteRT: https://ai.google.dev/edge/litert/models/trained
+    Model conversion overview: https://ai.google.dev/edge/litert/models/convert
+
+
+<<-- React Native ExecuTorch -->>
+Links:
+https://github.com/software-mansion/react-native-executorch
+https://expo.dev/blog/how-to-run-ai-models-with-react-native-executorch
+https://docs.pytorch.org/executorch/stable/using-executorch-export.html
+
+ONNX: https://huggingface.co/docs/transformers/en/serialization
+Optimum ExecuTorch: https://github.com/huggingface/optimum-executorch?tab=readme-ov-file#option-2-export-and-load-separately
+
+BackGround:
+We using hugginh face which uses pytorch and generated torch models.
+Found a reactnatove library : React Native ExecuTorch provides a declarative way to run AI models on-device using React Native, powered by ExecuTorch.
+https://github.com/software-mansion/react-native-executorch
+
+What model format is needed: If you're interested in running your own AI model, you need to first export it to the .pte format.
+
+This gitHub also provides a link to Optimum ExecuTorch: https://github.com/huggingface/optimum-executorch?tab=readme-ov-file#option-2-export-and-load-separately. 
+This gives code to convert out hugging face models into .pte format using optum-cli(https://huggingface.co/docs/transformers/en/serialization).
+
+The Optimum ExecuTorch supported models is Google's t5 model and its varients. https://huggingface.co/docs/transformers/en/model_doc/t5#t5
+Provides link to conver using optimum-cli https://github.com/huggingface/optimum-executorch/blob/main/optimum/exporters/executorch/README.md.
+
+STEP1:
+Has the code for conda env setup for conversion : Optimum ExecuTorch : https://github.com/huggingface/optimum-executorch?tab=readme-ov-file#option-2-export-and-load-separately
+optimun CLI https://huggingface.co/docs/transformers/en/serialization
+
+```
+    pip install optimum[exporters] 
+```
+## Seq2Seq
+
+#### Seq2Seq models can be exported using the text2text-generation task like so:
+
+```
+optimum-cli export executorch \
+  --model google-t5/t5-small \
+  --task text2text-generation \
+  --recipe xnnpack
+```
+  or 
+```
+  optimum-cli export executorch --model /home/yogesh/LinguaBridge/test/t5-small-60m/marian-finetuned-opusbooks-en-to-fr-graph/checkpoint-8340 --task text2text-generation --recipe xnnpack
+```
+## LLAMA
+```
+optimum-cli export executorch \
+    --model "/home/yogesh/LinguaBridge/test/llama-3/myaamia/llama-3.2-1b-en-mia-translation-merged" \
+    --task "text-generation" \
+    --recipe "xnnpack" \
+    --use_custom_sdpa \
+    --use_custom_kv_cache \
+    --qlinear 8da4w \
+    --qembedding 8w \
+    --output_dir="llama2_export"
+```
+
+The export will produce a .pte with the following methods:
+
+text_decoder: 
+the decoder half of the Seq2Seq model
+encoder: the encoder half of the Seq2Seq model. This encoder can support a variety of modalities, such as text for T5 and audio for Whisper.
+
+
+step2:
+Reset the react-natve project.
+ReactNative ExecuTorch documentations on how to load models: https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models
+
+
+Executorch GitHub : https://github.com/pytorch/executorch/tree/main?tab=readme-ov-file
+
+------------------------------------------------------------
+
+
+Working with LLAMA
+```
+optimum-cli export executorch \
+    --model "/home/yogesh/LinguaBridge/test/llama-3/myaamia/llama-3.2-1b-en-mia-translation-merged" \
+    --task "text-generation" \
+    --recipe "xnnpack" \
+  <<---------
+    --use_custom_sdpa \
+    --use_custom_kv_cache \
+    --------------------->> this gave error so removed this and ran
+    --qlinear 8da4w \
+    --qembedding 8w \
+    --output_dir="llama2_export"
+```
+ERROR:
+Android Bundling failed 2133ms node_modules/expo-router/entry.js (1259 modules)
+ ERROR  assets/models/llama/model.pte: Cannot create a string longer than 0x1fffffe8 characters
+SOLUTION: cannot bunlde and use model > 512 directly hence will have to push to android.
+    https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models
+    
+    push model to local :
+
+    1. adb push /Users/mc-ga/Desktop/Research/translation/mobile/test5/test-android/assets/models/llama/model.pte /data/local/tmp/model.pte
+    2. adb shell "run-as com.anonymous.testandroid cp /data/local/tmp/model.pte /data/data/com.anonymous.testandroid/files/model.pte"
+    3. Delete: adb shell rm /data/local/tmp/model.pte
+
+
+GGUF
+Docs:
+https://huggingface.co/docs/transformers/main/gguf
+https://huggingface.co/docs/hub/en/gguf
+Convert docs:
+https://github.com/ggerganov/llama.cpp/blob/master/convert_hf_to_gguf.py
+https://github.com/ggml-org/llama.cpp
+https://github.com/mybigday/llama.rn
+
+1. clone the llama.cpp git repo
+2. `build it https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md`
+3. `python convert_hf_to_gguf.py /home/yogesh/LinguaBridge/test/llama-3/myaamia/llama-3.2-1b-en-mia-translation-merged   --outtype f16   --outfile llama3_1b_finetune_f16.gguf`
+4. quantize to smaller `./build/bin/llama-quantize llama3_1b_finetune_f16.gguf llama3_1b_finetune_Q4_K_M.gguf Q4_K_M`
+
+OUTPUT:
+    ```
+    llama_model_quantize_impl: model size  =  2357.26 MiB
+    llama_model_quantize_impl: quant size  =   762.81 MiB
+
+    main: quantize time =  7076.61 ms
+    main:    total time =  7076.61 ms
+    ```
+
+Steps
+1. `adb push /Users/mc-ga/Desktop/Research/translation/mobile/test6GGUF/llama-gguf/assets/model/llama3_1b_finetune_Q4_K_M.gguf /data/local/tmp/llama3_1b_finetune_Q4_K_M.gguf`
+2. `adb shell "run-as com.anonymous.llamagguf cp /data/local/tmp/llama3_1b_finetune_Q4_K_M.gguf /data/data/com.anonymous.llamagguf/files/llama3_1b_finetune_Q4_K_M.gguf"`
+
+
+Export to APK:
+
+1. `cd android`
+2. `./gradlew assembleRelease`
+3. After the build completes, the APK file will be located at: `android/app/build/outputs/apk/release/app-release.apk`
+4. `adb install android/app/build/outputs/apk/release/app-release.apk`
+
+
+
