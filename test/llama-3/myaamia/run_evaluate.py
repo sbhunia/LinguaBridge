@@ -184,3 +184,8 @@ print(f"ChrF++ Score: {chrf_results['score']:.4f}")
 
 print(f"  BLEU Score: {result['bleu'] * 100:.2f}")
 print("---------------------------")
+
+
+# SacreBLEU Score: 0.0104
+# ChrF++ Score: 4.8728
+#   BLEU Score: 0.00

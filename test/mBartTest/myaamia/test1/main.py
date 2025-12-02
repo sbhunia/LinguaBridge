@@ -17,7 +17,7 @@ from transformers import GenerationConfig
 # CONFIG
 # -------------------------
 # ➤ CHANGED: Model name is now mBART-50
-model_name = "facebook/mbart-large-50"
+model_name = "/home/chaudhy/LinguaBridge/test/mBartTest/myaamia/test1/mbart_finetuned_myaamia/checkpoint-9196"
 save_dir = "./mbart_finetuned_myaamia"
 log_file = "./mbart_training.log"
 eval_file = "./mbart_eval_results.tsv"

@@ -27,3 +27,14 @@ Epoch result: {'bleu': 2.8011, 'meteor': 0.0864, 'bert_score': 0.0, 'chrf++': 31
 Epoch result: {'bleu': 3.2496, 'meteor': 0.0916, 'bert_score': 0.0, 'chrf++': 32.6063}
 Epoch result: {'bleu': 3.2443, 'meteor': 0.0985, 'bert_score': 0.0, 'chrf++': 33.4004}
 Epoch result: {'bleu': 2.3358, 'meteor': 0.1027, 'bert_score': 0.0, 'chrf++': 34.0935}
+Epoch result: {'bleu': 2.4164, 'meteor': 0.1077, 'bert_score': 0.0, 'chrf++': 34.5647}
+Epoch result: {'bleu': 3.9046, 'meteor': 0.1115, 'bert_score': 0.0, 'chrf++': 35.2221}
+Epoch result: {'bleu': 4.1101, 'meteor': 0.114, 'bert_score': 0.0, 'chrf++': 35.5707}
+Epoch result: {'bleu': 4.1557, 'meteor': 0.1185, 'bert_score': 0.0, 'chrf++': 36.0015}
+Epoch result: {'bleu': 4.1608, 'meteor': 0.118, 'bert_score': 0.0, 'chrf++': 36.0607}
+Epoch result: {'bleu': 4.5248, 'meteor': 0.1212, 'bert_score': 0.0, 'chrf++': 36.686}
+Epoch result: {'bleu': 4.5276, 'meteor': 0.1238, 'bert_score': 0.0, 'chrf++': 36.8846}
+Epoch result: {'bleu': 4.3987, 'meteor': 0.125, 'bert_score': 0.0, 'chrf++': 37.0373}
+Epoch result: {'bleu': 4.3397, 'meteor': 0.126, 'bert_score': 0.0, 'chrf++': 37.1544}
+Epoch result: {'bleu': 4.401, 'meteor': 0.1264, 'bert_score': 0.0, 'chrf++': 37.2294}
+Epoch result: {'bleu': 4.3911, 'meteor': 0.1263, 'bert_score': 0.0, 'chrf++': 37.2289}
