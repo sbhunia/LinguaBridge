@@ -8,6 +8,7 @@ import numpy as np
 import nltk
 import bert_score
 from statistics import mean
+import accelerate
 
 
 # -------------------------
@@ -18,7 +19,6 @@ save_dir = "./marian_finetuned_myaamia"
 log_file = "./training.log"
 eval_file = "./eval_results.tsv"
 nltk.download("wordnet", quiet=True)
-
 
 # -------------------------
 # LOGGER
@@ -34,8 +34,8 @@ logging.basicConfig(
 # -------------------------
 def load_tsv(path):
     df = pd.read_csv(path, sep="\t")
-    df = df.dropna(subset=["mya", "en"])  # Remove rows with missing translations
-    df["mya"] = df["mya"].astype(str)
+    df = df.dropna(subset=["mia", "en"])  # Remove rows with missing translations
+    df["mia"] = df["mia"].astype(str)
     df["en"] = df["en"].astype(str)
     return Dataset.from_pandas(df)
 
@@ -57,7 +57,7 @@ tokenizer = MarianTokenizer.from_pretrained(model_name)
 
 # Old code had a source and target direction issue with the model selected. Expected: english as souce and myaamia/french(pretrained model) as target
 # def preprocess(batch):
-#     model_inputs = tokenizer(batch["mya"], max_length=128, truncation=True)
+#     model_inputs = tokenizer(batch["mia"], max_length=128, truncation=True)
 #     with tokenizer.as_target_tokenizer():
 #         labels = tokenizer(batch["en"], max_length=128, truncation=True)
 #     model_inputs["labels"] = labels["input_ids"]
@@ -65,7 +65,7 @@ tokenizer = MarianTokenizer.from_pretrained(model_name)
 
 # tokenized_dataset = full_dataset.map(preprocess, batched=True)
 
-prefix = ">>mya<< "  # Marian style target language token
+prefix = ">>mia<< "  # Marian style target language token
 
 def preprocess(batch):
     # Source: English
@@ -73,7 +73,7 @@ def preprocess(batch):
     
     # Target: Myaamia
     with tokenizer.as_target_tokenizer():
-        labels = tokenizer([prefix + t for t in batch["mya"]], 
+        labels = tokenizer([prefix + t for t in batch["mia"]], 
                            max_length=128, truncation=True, padding="max_length")
     
     model_inputs["labels"] = labels["input_ids"]
