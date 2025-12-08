@@ -120,7 +120,7 @@ tokenized_dataset = full_dataset.map(preprocess, batched=True)
 # METRIC (sacreBLEU)
 # -------------------------
 metric = evaluate.load("sacrebleu")
-meteor_metric = evaluate.load("meteor")
+chrf_metric = evaluate.load("chrf")
 
 def postprocess_text(preds, labels):
     preds = [p.strip() for p in preds]
@@ -139,23 +139,18 @@ def compute_metrics(eval_pred):
     bleu_result = metric.compute(predictions=decoded_preds, references=decoded_labels)
     bleu_score = bleu_result["score"]
 
-    # Compute METEOR using NLTK
-    meteor_scores = [
-        nltk.translate.meteor_score.single_meteor_score(ref[0].split(), hyp.split())
-        for hyp, ref in zip(decoded_preds, decoded_labels)
-    ]
-    meteor_score = mean(meteor_scores)
-
-    # Compute BERTScore
-    P, R, F1 = bert_score.score(decoded_preds, [ref[0] for ref in decoded_labels],
-                                lang="fr", rescale_with_baseline=True)
-    bert_f1 = float(F1.mean())
+    # chfr
+    try:
+        chrf_result = chrf_metric.compute(predictions=decoded_preds, references=decoded_labels, word_order=2)
+        chrf_score = chrf_result["score"]
+    except Exception as e:
+        logging.warning(f"chrF++ calculation failed: {e}")
+        chrf_score = 0.0
 
     # Combine results
     result = {
-        "bleu": round(bleu_score, 4),
-        "meteor": round(meteor_score, 4),
-        "bert_score": round(bert_f1, 4)
+        "sacrebleu": round(bleu_score, 4),
+        "chrf++": round(chrf_score, 4),
     }
 
     # Log to file
