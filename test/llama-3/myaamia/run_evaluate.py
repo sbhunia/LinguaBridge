@@ -2,59 +2,45 @@ import os
 import pandas as pd
 import logging
 import torch
-import numpy as np
 import evaluate
 from datasets import Dataset, concatenate_datasets
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-)
-from peft import PeftModel  # We need this to load the LoRA adapter
-from tqdm import tqdm  # For a nice progress bar
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from tqdm import tqdm
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
 # --- 1. Configuration ---
-# ⬇️ *** TODO: SET THIS TO YOUR CHECKPOINT PATH *** ⬇️
-# Example: "llama-3.2-1b-en-mia-translation/checkpoint-200"
-ADAPTER_PATH = "/home/chaudhy/LinguaBridge/test/llama-3/myaamia/test2/llama-3.2-1b-en-mia-translation"
-
-# This is the base model your adapter was trained on
-MODEL_ID = "meta-llama/Llama-3.2-1B"
+# ⬇️ *** TODO: SET THIS TO YOUR MERGED MODEL PATH *** ⬇️
+# This folder should contain config.json, model.safetensors, tokenizer.json, etc.
+MERGED_MODEL_PATH = "meta-llama/Llama-3.2-1B-Instruct"
 
 # Set which GPU to use for evaluation
-EVAL_GPU = "3"
-
-# Set a batch size for evaluation. Adjust this based on your VRAM.
-# 4, 8, or 16 are good values to try.
+# EVAL_GPU = "3"
 EVAL_BATCH_SIZE = 8
 
 # --- 2. Set Target GPU ---
-os.environ["CUDA_VISIBLE_DEVICES"] = EVAL_GPU
-DEVICE = "cuda"
+# os.environ["CUDA_VISIBLE_DEVICES"] = EVAL_GPU
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-# --- 3. Data Loading Function (Copied from training script) ---
+# --- 3. Data Loading Function ---
 def load_tsv(path):
     """Loads a TSV file into a Hugging Face Dataset."""
     try:
         df = pd.read_csv(path, sep="\t")
         df = df.dropna(subset=["mia", "en"])
-        df["mia"] = df["mia"].astype(str).str.strip()
-        df["en"] = df["en"].astype(str).str.strip()
+        
+        # Use .loc to avoid Pandas warnings
+        df.loc[:, "mia"] = df["mia"].astype(str).str.strip()
+        df.loc[:, "en"] = df["en"].astype(str).str.strip()
+        
         logging.info(f"Loaded {len(df)} rows from {path}")
         return Dataset.from_pandas(df)
-    except FileNotFoundError:
-        logging.error(f"Data file not found at: {path}")
-        return None
     except Exception as e:
         logging.error(f"Error loading {path}: {e}")
         return None
 
-# --- 4. Load the *Exact Same* Test Split ---
-# This logic is identical to your training script to ensure
-# we get the *exact same* 1,910 test examples.
-
+# --- 4. Load the Test Split ---
 data_files = [
     "../../../data/basic_forms.tsv",
     "../../../data/command_forms.tsv",
@@ -66,10 +52,10 @@ loaded_datasets = [load_tsv(path) for path in data_files]
 valid_datasets = [ds for ds in loaded_datasets if ds is not None]
 
 if not valid_datasets:
-    raise ValueError("No valid datasets were loaded. Please check your file paths.")
+    raise ValueError("No valid datasets were loaded.")
 
 full_dataset = concatenate_datasets(valid_datasets)
-full_dataset = full_dataset.shuffle(seed=42) # The crucial step
+full_dataset = full_dataset.shuffle(seed=42) 
 
 # Re-create the 90/10 split
 dataset_splits = full_dataset.train_test_split(test_size=0.1)
@@ -77,26 +63,30 @@ test_data = dataset_splits["test"]
 
 logging.info(f"Successfully loaded {len(test_data)} unique test examples.")
 
-# --- 5. Load Model and Tokenizer ---
-logging.info(f"Loading base model: {MODEL_ID}")
-base_model = AutoModelForCausalLM.from_pretrained(
-    MODEL_ID,
+# --- 5. Load Merged Model and Tokenizer ---
+logging.info(f"Loading merged model from: {MERGED_MODEL_PATH}")
+
+# Load Tokenizer
+tokenizer = AutoTokenizer.from_pretrained(MERGED_MODEL_PATH)
+
+# CRITICAL: Set padding side to LEFT for batched inference
+tokenizer.padding_side = "left"
+
+# Ensure pad_token is set (Llama 3 often defaults to None or EOS)
+if tokenizer.pad_token is None:
+    tokenizer.pad_token = tokenizer.eos_token
+
+# Load Model
+model = AutoModelForCausalLM.from_pretrained(
+    MERGED_MODEL_PATH,
     dtype=torch.bfloat16,
-    device_map={"": DEVICE} # Load the whole model onto our target GPU
+    device_map={"": DEVICE} # Load directly to target GPU
 )
 
-logging.info(f"Loading adapter and tokenizer from: {ADAPTER_PATH}")
-# Load the adapter on top of the base model
-model = PeftModel.from_pretrained(base_model, ADAPTER_PATH)
-tokenizer = AutoTokenizer.from_pretrained(ADAPTER_PATH)
-model = model.eval() # Set model to evaluation mode
+model.eval() 
 
-# --- 6. Prompt Creation Function (Inference) ---
+# --- 6. Prompt Creation Function ---
 def create_inference_prompt(english_text):
-    """
-    Creates the prompt for the model to translate,
-    but does *not* include the answer.
-    """
     system_prompt = "You are an expert translator. Translate the given English text into Myaamia."
 
     messages = [
@@ -104,8 +94,6 @@ def create_inference_prompt(english_text):
         {"role": "user", "content": f"translate english to myaamia: {english_text}"},
     ]
     
-    # apply_chat_template will add the <|start_header_id|>assistant<|end_header_id|>
-    # tokens, telling the model to start generating
     prompt = tokenizer.apply_chat_template(
         messages, 
         tokenize=False, 
@@ -115,21 +103,16 @@ def create_inference_prompt(english_text):
 
 # --- 7. Run Evaluation Loop ---
 logging.info("Starting evaluation...")
-bleu = evaluate.load("bleu")
 all_predictions = []
 all_references = []
 
-# Process the test set in batches
 for i in tqdm(range(0, len(test_data), EVAL_BATCH_SIZE), desc="Evaluating Batches"):
     batch = test_data[i : i + EVAL_BATCH_SIZE]
-    
-    # Get the ground-truth Myaamia translations
     references = batch['mia']
     
-    # Create the input prompts for the model
-    prompts = [create_inference_prompt(en_text) for en_text in batch['en']]
+    # Prepare inputs
+    prompts = [create_inference_prompt(en) for en in batch['en']]
     
-    # Tokenize the batch of prompts
     inputs = tokenizer(
         prompts, 
         return_tensors="pt", 
@@ -137,55 +120,54 @@ for i in tqdm(range(0, len(test_data), EVAL_BATCH_SIZE), desc="Evaluating Batche
         truncation=True
     ).to(DEVICE)
 
-    # Generate the model's translations
+    # Generate
     with torch.no_grad():
         output_tokens = model.generate(
             **inputs,
-            max_new_tokens=75,  # Max length of a Myaamia translation
-            pad_token_id=tokenizer.eos_token_id # Important for generation
+            max_new_tokens=75,
+            pad_token_id=tokenizer.eos_token_id,
+            stop_strings=["<|eot_id|>", "\n"], # Prevent rambling
+            tokenizer=tokenizer
         )
     
-    # We need to decode *only* the newly generated tokens
+    # Decode only new tokens
     input_length = inputs.input_ids.shape[1]
     new_tokens = output_tokens[:, input_length:]
-    
-    # Decode the predictions
     predictions = tokenizer.batch_decode(new_tokens, skip_special_tokens=True)
     
-    # Clean and store
-    cleaned_preds = [pred.strip() for pred in predictions]
-    cleaned_refs = [[ref.strip()] for ref in references]
-    
-    all_predictions.extend(cleaned_preds)
-    all_references.extend(cleaned_refs)
+    # Store results
+    all_predictions.extend([p.strip() for p in predictions])
+    all_references.extend([[r.strip()] for r in references])
 
+# --- 8. Compute Metrics ---
+logging.info("Calculating final scores...")
 
-print(f"  Checkpoint: {ADAPTER_PATH}")
-print(f"  Test Examples: {len(all_predictions)}")
-# --- 8. Compute and Print Final BLEU Score ---
-logging.info("Calculating final BLEU score...")
-result = bleu.compute(predictions=all_predictions, references=all_references)
-
+bleu = evaluate.load("bleu")
 sacrebleu = evaluate.load("sacrebleu")
-sacrebleu_results = sacrebleu.compute(predictions=all_predictions, references=all_references)
-print(f"SacreBLEU Score: {sacrebleu_results['score']:.4f}")
+chrf = evaluate.load("chrf")
 
-# Load chrF metric
-# ChrF++ is chrF with word_order=2 (defaults to chrF if word_order=0)
-chrf = evaluate.load("chrf") 
-chrf_results = chrf.compute(
-    predictions=all_predictions, 
-    references=all_references, 
-    word_order=2, # This activates ChrF++
-    beta=2.0 # Standard beta for ChrF++
+bleu_score = bleu.compute(predictions=all_predictions, references=all_references)
+sacrebleu_score = sacrebleu.compute(predictions=all_predictions, references=all_references)
+chrf_score = chrf.compute(predictions=all_predictions, references=all_references, word_order=2)
+
+# --- 9. Print and Save Results ---
+model_name = os.path.basename(MERGED_MODEL_PATH)
+output_filename = f"eval_results_merged_{model_name}_base-1B.txt"
+
+result_text = (
+    "\n" + "="*30 + "\n"
+    f"RESULTS FOR MERGED MODEL: {model_name}\n"
+    + "="*30 + "\n"
+    f"Test Examples: {len(all_predictions)}\n"
+    f"BLEU:          {bleu_score['bleu'] * 100:.2f}\n"
+    f"SacreBLEU:     {sacrebleu_score['score']:.4f}\n"
+    f"ChrF++:        {chrf_score['score']:.4f}\n"
+    + "="*30 + "\n"
 )
-print(f"ChrF++ Score: {chrf_results['score']:.4f}")
 
+print(result_text)
 
-print(f"  BLEU Score: {result['bleu'] * 100:.2f}")
-print("---------------------------")
+with open(output_filename, "w", encoding="utf-8") as f:
+    f.write(result_text)
 
-
-# SacreBLEU Score: 0.0104
-# ChrF++ Score: 4.8728
-#   BLEU Score: 0.00
+logging.info(f"Results saved to {output_filename}")

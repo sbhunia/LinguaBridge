@@ -154,6 +154,17 @@ optimum-cli export executorch \
 ```
   optimum-cli export executorch --model /home/yogesh/LinguaBridge/test/t5-small-60m/marian-finetuned-opusbooks-en-to-fr-graph/checkpoint-8340 --task text2text-generation --recipe xnnpack
 ```
+mT5 Large .pte
+```
+optimum-cli export executorch \
+  --model /home/yogesh/LinguaBridge/test/t5-small-60m/myaamia/test5-mt5-large-lora-2/mt5_large_myaamia_final_merged \
+  --task text2text-generation \
+  --recipe xnnpack \
+  --qlinear 8da4w \
+  --qembedding 8w \
+  --output_dir "mt5_large_myaamia_quantized"
+```
+
 ## LLAMA
 ```
 optimum-cli export executorch \
@@ -164,7 +175,7 @@ optimum-cli export executorch \
     --use_custom_kv_cache \
     --qlinear 8da4w \
     --qembedding 8w \
-    --output_dir="llama2_export"
+    --output_dir="llama3_export"
 ```
 
 The export will produce a .pte with the following methods:
@@ -196,7 +207,7 @@ optimum-cli export executorch \
     --------------------->> this gave error so removed this and ran
     --qlinear 8da4w \
     --qembedding 8w \
-    --output_dir="llama2_export"
+    --output_dir="llama3_export"
 ```
 ERROR:
 Android Bundling failed 2133ms node_modules/expo-router/entry.js (1259 modules)
@@ -220,6 +231,7 @@ https://github.com/ggerganov/llama.cpp/blob/master/convert_hf_to_gguf.py
 https://github.com/ggml-org/llama.cpp
 https://github.com/mybigday/llama.rn
 
+LLAMA MODEL
 1. clone the llama.cpp git repo
 2. `build it https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md`
 3. `python convert_hf_to_gguf.py /home/yogesh/LinguaBridge/test/llama-3/myaamia/llama-3.2-1b-en-mia-translation-merged   --outtype f16   --outfile llama3_1b_finetune_f16.gguf`
@@ -234,7 +246,44 @@ OUTPUT:
     main:    total time =  7076.61 ms
     ```
 
-Steps
+mT5 MODEL
+```
+conda deactivate
+conda create -n gguf_stable python=3.10 -y
+conda activate gguf_stable
+cd ~/LinguaBridge/test/llama-3/llama.cpp
+pip install -r requirements.txt
+python convert_hf_to_gguf.py /home/yogesh/LinguaBridge/test/t5-small-60m/myaamia/test3/mt5_finetuned_myaamia/final_model \
+  --outtype f16 \
+  --outfile t5_model_small_f16.gguf
+```
+
+Inference using gguf mt5 model:
+```
+./build/bin/llama-cli -m t5_model_small_f16.gguf -p "translate English to Myaamia: hello."
+```
+
+Quantize further Q4_K_M:
+```
+./build/bin/llama-quantize mt5_model_large_f16.gguf mt5_large_Q4_K_M.gguf Q4_K_M
+```
+```
+Output:
+llama_model_quantize_impl: model size  =  2345.48 MiB
+llama_model_quantize_impl: quant size  =   757.79 MiB
+
+main: quantize time =  7662.36 ms
+main:    total time =  7662.36 ms
+```
+
+```
+Model	Params	Expected GGUF Size (F16)	Expected GGUF Size (Q4_K_M)
+mT5-Small	~300M	~600 MB	~200 MB
+mT5-Base	~580M	~1.2 GB	~450 MB
+mT5-Large	~1.2B	~2.5 GB	~900 MB - 1 GB
+```
+
+Steps to push to local in mobile
 1. `adb push /Users/mc-ga/Desktop/Research/translation/mobile/test6GGUF/llama-gguf/assets/model/llama3_1b_finetune_Q4_K_M.gguf /data/local/tmp/llama3_1b_finetune_Q4_K_M.gguf`
 2. `adb shell "run-as com.anonymous.llamagguf cp /data/local/tmp/llama3_1b_finetune_Q4_K_M.gguf /data/data/com.anonymous.llamagguf/files/llama3_1b_finetune_Q4_K_M.gguf"`
 

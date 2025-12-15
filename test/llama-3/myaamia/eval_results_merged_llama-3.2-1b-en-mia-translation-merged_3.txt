@@ -1,0 +1,9 @@
+
+==============================
+RESULTS FOR MERGED MODEL: llama-3.2-1b-en-mia-translation-merged
+==============================
+Test Examples: 1910
+BLEU:          0.00
+SacreBLEU:     1.0241
+ChrF++:        21.7712
+==============================

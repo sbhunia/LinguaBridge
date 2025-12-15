@@ -1,0 +1,9 @@
+
+==============================
+RESULTS FOR MERGED MODEL: Llama-3.2-1B-Instruct
+==============================
+Test Examples: 1910
+BLEU:          0.00
+SacreBLEU:     0.0093
+ChrF++:        7.1151
+==============================
