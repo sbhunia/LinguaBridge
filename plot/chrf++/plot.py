@@ -12,7 +12,7 @@ plt.figure(figsize=(10, 6))
 
 # Style iterators
 linestyles = itertools.cycle(['-', '--', '-.', ':'])
-markers = itertools.cycle(['o', 's', '^', 'D', 'v', '<', '>', 'p', '*'])
+markers = itertools.cycle(['o', 's', '^', 'D', 'v', 'p', '*'])
 colors = itertools.cycle(plt.cm.tab10.colors) 
 
 epochs = df.index + 1
@@ -32,12 +32,27 @@ for col in df.columns:
 
 plt.ylabel('chrF++ Score')
 plt.xlabel('Epochs')
-plt.title('chrF++ Score vs Epochs')
-plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+
+# --- MODIFIED LEGEND SECTION ---
+# ncol=1: Forces every label onto a new line (1 column).
+# mode="expand": Forces the legend box to span the full width of the chart.
+# bbox_to_anchor: Places the legend above the chart.
+plt.legend(
+    bbox_to_anchor=(0., 1.02, 1., .102), 
+    loc='lower left',
+    ncol=2, 
+    mode="expand", 
+    borderaxespad=0.
+)
+# -------------------------------
+
 plt.grid(True)
+
+# Tight layout usually helps, but with a large external legend, 
+# you might need to rely on the savefig 'bbox_inches' parameter below.
 plt.tight_layout()
 
 # 4. Save as PDF
-# 'bbox_inches="tight"' ensures the legend isn't cut off
+# bbox_inches='tight' is crucial here to ensure the tall legend isn't cut off
 plt.savefig('chrF++_chart.pdf', format='pdf', bbox_inches='tight')
 plt.show()

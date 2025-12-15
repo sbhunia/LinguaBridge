@@ -12,21 +12,21 @@ logging.basicConfig(level=logging.INFO)
 
 # --- 1. Configuration ---
 # ⬇️ *** VERIFY YOUR PATHS HERE *** ⬇️
-# Point this to the DIRECTORY containing your .pte file (e.g., "mt5_large_myaamia_quantized")
-EXPORTED_MODEL_DIR = "mt5_large_myaamia_quantized" 
+EXPORTED_MODEL_DIR = "/home/yogesh/LinguaBridge/test/t5-small-60m/myaamia/executorch_pte/mt5_large_myaamia_int8_fixed" 
+TOKENIZER_PATH = "/home/yogesh/LinguaBridge/test/t5-small-60m/myaamia/test5-mt5-large-lora-2/final-mt5-large-adapter"
 
 # --- 2. Load Model & Tokenizer ---
 logging.info(f"Loading ExecuTorch model from: {EXPORTED_MODEL_DIR}")
 
 try:
-    # Load the Tokenizer (Optimum usually copies tokenizer files to the export dir)
-    tokenizer = AutoTokenizer.from_pretrained(EXPORTED_MODEL_DIR)
+    # Load the Tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH)
     
     # Load the ExecuTorch Model
     model = ExecuTorchModelForSeq2SeqLM.from_pretrained(EXPORTED_MODEL_DIR)
     
 except Exception as e:
-    raise RuntimeError(f"Failed to load model/tokenizer from {EXPORTED_MODEL_DIR}. Error: {e}")
+    raise RuntimeError(f"Failed to load model/tokenizer. Error: {e}")
 
 # --- 3. Data Loading ---
 def load_tsv(path):
@@ -59,7 +59,7 @@ test_data = dataset_splits["test"]
 
 logging.info(f"Loaded {len(test_data)} test examples.")
 
-# --- 4. Inference Function (Python API) ---
+# --- 4. Inference Function (Corrected) ---
 def run_t5_inference(text_input):
     """
     Runs inference using the loaded ExecuTorch Python model.
@@ -69,21 +69,19 @@ def run_t5_inference(text_input):
         prompt = f"translate English to Myaamia: {text_input}"
         
         # 2. Tokenize
-        # return_tensors="pt" creates PyTorch tensors
         inputs = tokenizer(prompt, return_tensors="pt")
         
         # 3. Generate
-        # ExecuTorchModelForSeq2SeqLM supports the standard .generate() API
+        # FIX: Pass 'input_ids' specifically. Do not unpack **inputs (which includes attention_mask).
         generated_ids = model.generate(
-            **inputs,
-            max_new_tokens=128,
-            num_beams=1, # Greedy search is standard for simple evaluations, change if needed
-            do_sample=False
+            input_ids=inputs["input_ids"], # Explicitly pass only input_ids
+            max_seq_len=128,
         )
         
         # 4. Decode
-        # skip_special_tokens=True removes <pad>, </s>, etc. automatically
-        output_text = tokenizer.decode(generated_ids[0], skip_special_tokens=True)
+        # FIX: Your generate() returns List[int], so pass 'generated_ids' directly.
+        # (generated_ids[0] would only be the first integer token, which is wrong here)
+        output_text = tokenizer.decode(generated_ids, skip_special_tokens=True)
         
         return output_text.strip()
 
