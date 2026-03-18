@@ -55,10 +55,10 @@ def load_tsv(path):
         return None
 
 datasets = [
-    load_tsv("../../../../data/basic_forms.tsv"),
-    load_tsv("../../../../data/command_forms.tsv"),
-    load_tsv("../../../../data/sentences.tsv"),
-    load_tsv("../../../../data/story_book.tsv"),
+    load_tsv("../../../../../data/basic_forms.tsv"),
+    load_tsv("../../../../../data/command_forms.tsv"),
+    load_tsv("../../../../../data/sentences.tsv"),
+    load_tsv("../../../../../data/story_book.tsv"),
 ]
 
 # Filter out any None results from failed loads

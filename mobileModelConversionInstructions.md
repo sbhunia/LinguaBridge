@@ -231,7 +231,7 @@ https://github.com/ggerganov/llama.cpp/blob/master/convert_hf_to_gguf.py
 https://github.com/ggml-org/llama.cpp
 https://github.com/mybigday/llama.rn
 
-LLAMA MODEL
+LLAMA MODEL (Conversion to GGUF steps)
 1. clone the llama.cpp git repo
 2. `build it https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md`
 3. `python convert_hf_to_gguf.py /home/yogesh/LinguaBridge/test/llama-3/myaamia/llama-3.2-1b-en-mia-translation-merged   --outtype f16   --outfile llama3_1b_finetune_f16.gguf`
